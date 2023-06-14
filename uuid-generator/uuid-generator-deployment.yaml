@@ -1,0 +1,58 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  annotations:
+    alpha.image.policy.openshift.io/resolve-names: '*'
+    app.openshift.io/route-disabled: 'false'
+    app.openshift.io/vcs-ref: ''
+    app.openshift.io/vcs-uri: 'https://github.com/thislo/demo.git'
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"uuid-generator:latest","namespace":"itau-demo"},"fieldPath":"spec.template.spec.containers[?(@.name==\"uuid-generator\")].image","pause":"false"}]
+    openshift.io/generated-by: OpenShiftWebConsole
+  name: uuid-generator
+  namespace: itau-demo
+  labels:
+    app: uuid-generator
+    app.kubernetes.io/component: uuid-generator
+    app.kubernetes.io/instance: uuid-generator
+    app.kubernetes.io/name: uuid-generator
+    app.kubernetes.io/part-of: uuid-generator-app
+    app.openshift.io/runtime: java
+    app.openshift.io/runtime-version: openjdk-17-ubi8
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uuid-generator
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: uuid-generator
+        deployment: uuid-generator
+    spec:
+      containers:
+        - name: uuid-generator
+          image: >-
+            image-registry.openshift-image-registry.svc:5000/itau-demo/uuid-generator@sha256:e522ea61e85384e8b9db2b21f5b6f671ba59f1b449699b692d2ae319c5e9ad97
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+            - containerPort: 8443
+              protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
